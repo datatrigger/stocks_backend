@@ -82,7 +82,7 @@ def compute_metrics() -> pd.DataFrame:
     returns_daily = (prices - prices.shift(1)) / prices.shift(1)
     df_metrics = pd.DataFrame({
         "Return": returns,
-        "Annualized Return": returns.apply(func = lambda r: (1 + r) ** (365 / bdays_window) - 1),
+        "Annualized Return": returns.apply(func = lambda r: (1 + r) ** (365 / window) - 1),
         "Annualized Volatility": returns_daily.std() * sqrt(261)
     })
     return df_metrics
