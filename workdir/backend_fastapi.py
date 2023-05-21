@@ -80,7 +80,7 @@ def compute_metrics() -> pd.DataFrame:
     return df_metrics
 
 def stringify_row(row):
-    return ''.join(map(lambda s: '{:<20}'.format(s), row))
+    return '|'.join(map(lambda s: '{:<20}'.format(s), row))
 
 def formatted_row(company, df_metrics):
     return [company] + [str(round(100 * x, 2)) + " %" for x in df_metrics.loc[company]]
