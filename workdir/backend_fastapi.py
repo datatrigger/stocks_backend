@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 import requests
 import logging
-import json
 import os
 import pandas as pd
 from datetime import date, timedelta
@@ -55,7 +54,7 @@ def full_data(dataframe: bool = False) -> pd.DataFrame:
         return pd.DataFrame(index = dates, data = prices)
     return {"dates": dates} | prices
 
-def http_body(raw_data):
+def body_chart(raw_data):
     body = {}
     body["labels"] = raw_data["dates"]
     datasets = []
@@ -74,11 +73,23 @@ def compute_metrics() -> pd.DataFrame:
     returns = (prices.iloc[-1] - prices.iloc[0]) / prices.iloc[0]
     returns_daily = (prices - prices.shift(1)) / prices.shift(1)
     df_metrics = pd.DataFrame({
-        "return": returns,
-        "annualized_return": returns.apply(func = lambda r: (1 + r) ** (365 / bdays_window) - 1),
-        "annualized_volatility": returns_daily.std() * sqrt(261)
+        "Return": returns,
+        "Annualized Return": returns.apply(func = lambda r: (1 + r) ** (365 / bdays_window) - 1),
+        "Annualized Volatility": returns_daily.std() * sqrt(261)
     })
     return df_metrics
+
+def stringify_row(row):
+    return ''.join(map(lambda s: '{:<20}'.format(s), row))
+
+def formatted_row(company, df_metrics):
+    return [company] + [str(round(100 * x, 2)) + " %" for x in df_metrics.loc[company]]
+
+def body_metrics(df_metrics):
+    rows = [stringify_row(["Company"] + list(df_metrics.columns))]
+    for company in tickers:
+        rows.append(stringify_row(formatted_row(company, df_metrics)))
+    return {"metrics": rows}
 
 from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
@@ -97,8 +108,8 @@ def home():
 
 @app.get('/data')
 def data():
-    return http_body(full_data())
+    return body_chart(full_data())
 
 @app.get('/metrics')
 def metrics():
-    return compute_metrics().to_json()
+    return body_metrics(compute_metrics())
