@@ -60,7 +60,7 @@ def body_chart(raw_data):
     datasets = []
     for company in tickers:
         dataset = {}
-        dataset["data"] = raw_data[company]
+        dataset["data"] = [100 * price / raw_data[company][0] for price in raw_data[company]]
         dataset["label"] = company
         dataset["borderColor"] = colors[company]
         dataset["fill"] = fill
