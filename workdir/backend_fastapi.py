@@ -10,12 +10,14 @@ from math import sqrt
 api_key = os.environ.get("API_KEY")
 tickers = {"Google": "GOOG", "Amazon": "AMZN", "Microsoft": "MSFT"}
 bdays_window = 10
+# Charts
+colors = {"Google": "#8e5ea2", "Amazon": "#3cba9f", "Microsoft": "#e8c3b9"}
+fill = False
 
 def previous_bdays(window: list[str] = bdays_window - 1):
-    # today = date.today().strftime("%Y-%m-%d")
     yesterday = date.today() - timedelta(days = 1)
     previous_bdays = pd.bdate_range(end = yesterday, periods = window).strftime("%Y-%m-%d")
-    return previous_bdays.tolist()# + [today]
+    return previous_bdays.tolist()
 
 def current_price(company: str) -> float | None:
     """"""
@@ -24,7 +26,7 @@ def current_price(company: str) -> float | None:
     except KeyError:
         logging.error("Unregistered company. Unable to fetch current price.")
         return
-    query = f"https://api.polygon.io/v2/last/trade/{ticker}?apiKey={api_key}"
+    query = f"https://api.polygon.io/v2/last/trade/{ticker}?apiKey={api_key}" # Error handling needed
     response = requests.get(query) # Error handling
     price = response.json()["results"]["p"]
     return float(price)
@@ -38,7 +40,7 @@ def history(company: str) -> list[float | None]:
         return []
     prices = []
     for day in previous_bdays():
-        query = f"https://api.polygon.io/v1/open-close/{ticker}/{day}?adjusted=true&apiKey={api_key}"
+        query = f"https://api.polygon.io/v1/open-close/{ticker}/{day}?adjusted=true&apiKey={api_key}" # Error handling
         response = requests.get(query)
         closing_price = float(response.json()["close"])
         prices.append(closing_price)
@@ -52,6 +54,20 @@ def full_data(dataframe: bool = False) -> pd.DataFrame:
     if dataframe:
         return pd.DataFrame(index = dates, data = prices)
     return {"dates": dates} | prices
+
+def http_body(raw_data):
+    body = {}
+    body["labels"] = raw_data["dates"]
+    datasets = []
+    for company in tickers:
+        dataset = {}
+        dataset["data"] = raw_data[company]
+        dataset["label"] = company
+        dataset["borderColor"] = colors[company]
+        dataset["fill"] = fill
+        datasets.append(dataset)
+    body["datasets"] = datasets
+    return body
 
 def compute_metrics() -> pd.DataFrame:
     prices = full_data(dataframe = True)
@@ -73,7 +89,7 @@ def home():
 
 @app.get('/data')
 def data():
-    return json.dumps(full_data())
+    return http_body(full_data())
 
 @app.get('/metrics')
 def metrics():
