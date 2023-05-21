@@ -19,7 +19,7 @@ The time window has been chosen to be short: half a trading month. In this conte
 
 ## Frontend
 
-The frontend is implement with JavaScript framework Vue.js (version 3, Component API). It is deployed directly from the repository on Netlify, in a CI/CD fashion.
+The frontend is implement with JavaScript framework Vue.js (version 3, Component API). It is built with Vite and deployed directly from the repository on Netlify, in a CI/CD fashion.
 
 ## Backend
 
