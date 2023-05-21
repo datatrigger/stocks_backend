@@ -27,7 +27,7 @@ async def fetch_price(company_day: tuple[str, str], client: httpx.AsyncClient) -
     """Fetch the closing price on a previous business day, or today's current price"""
     company, day = company_day
     today = date.today().strftime("%Y-%m-%d")
-    print(f"Making request for {company} price on {day}")
+    # Error handling needed
     if day == today:
         response = await client.get(f"https://api.polygon.io/v2/last/trade/{tickers[company]}?apiKey={api_key}")
         price = response.json()["results"]["p"]
