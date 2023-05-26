@@ -9,9 +9,9 @@
 This application shows live data about trading stock prices for Amazon, Google and Microsoft:
 * Line chart: value of the stock over the past 9 business days (closing price) + current value (15-min old at most during market hours)
 * Metrics:
-    * Cumulative Return: $R_c = \frac{P_end - P_start}{P_start}$
+    * Cumulative Return: $R_c = \frac{P_{end} - P_{start}}{P_{start}}$
     * Annualized return: $R_a = (1 + R_c)^{\frac{365}{n}} - 1$, $n$ is the length of window in days
-    * Annualized Volatility: $\sqrt{261} \, \sigma_r$, with $\sigma_r$ the standard deviation of the daily returns
+    * Annualized Volatility: $\sqrt{261} \sigma_r$, with $\sigma_r$ the standard deviation of the daily returns
 
 The time window has been chosen to be short: half a trading month. In this context, the annualized metrics do not make as much sense, but the live data and its impact are more visible.
 
