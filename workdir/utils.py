@@ -1,10 +1,11 @@
+from __future__ import annotations
 from datetime import date, timedelta
 from pandas import bdate_range
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from pandas.tseries.offsets import CustomBusinessDay
-
-import asyncio
 from itertools import repeat
+import logging
+import asyncio
 from httpx import AsyncClient
 
 def get_business_days(window: int) -> list[str]:
@@ -14,11 +15,23 @@ def get_business_days(window: int) -> list[str]:
     days = bdate_range(end = yesterday, periods = window, freq = trading_dates)
     return days.strftime("%Y-%m-%d").to_list()
 
+class HTTPError(Exception):
+    pass
+
 async def fetch_price(ticker: str, day: str, client: AsyncClient, api_key: str) -> tuple[str, str, float]:
     """Fetch the closing price for a given ticker/day"""
     payload = f"https://api.polygon.io/v1/open-close/{ticker}/{day}?adjusted=true&apiKey={api_key}"
-    response = await client.get(payload)
-    price = float(response.json()["close"])
+    try:
+        response = await client.get(payload)
+        if response.status_code != 200:
+            raise HTTPError
+        price = float(response.json()["close"])
+    except HTTPError as error:
+        logging.exception(msg = f"The following HTTP request failed with status code {response.status_code}: {payload}")
+        raise error
+    except Exception as error:
+        logging.exception(msg = "An error occured!")
+        raise error    
     return ticker, day, price
     
 def get_prices(tickers: list[str], days: list[str], api_key: str) -> list[tuple[str, str, float]]:
